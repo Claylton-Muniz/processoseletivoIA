@@ -351,11 +351,23 @@ Para dispositivos na "borda" (como microcontroladores que muitas vezes não poss
 
 ### 4️⃣ Resultados Obtidos
 
-O treinamento provou a viabilidade de usar arquiteturas compactas para resolver problemas de visão computacional. Mesmo com um tempo de treinamento extremamente reduzido (apenas 5 épocas) e processado apenas na CPU:
+O treinamento provou a viabilidade de usar arquiteturas compactas para resolver problemas de visão computacional na borda (Edge AI). Mesmo com um tempo de processamento extremamente reduzido (apenas 5 épocas, utilizando exclusivamente a CPU), a rede obteve os seguintes resultados:
+
+| Métrica                  | Valor  |
+|--------------------------|--------|
+| Acurácia de Treino       | 0.9928 |
+| Acurácia de Validação    | 0.9905 |
+| Acurácia de Teste        | 0.9901 |
+| Perda                    | 0.0319 |
+| Precisão                 | 0.9900 |
+| Recall                   | 0.9899 |
+| F1-score                 | 0.9899 |
 
 - O modelo ultrapassou a meta de 98% de acurácia no conjunto de testes (test_acc), demonstrando alta capacidade de generalização e baixo índice de falsos positivos/negativos.
 
-- A função de perda (loss) permaneceu em níveis mínimos, indicando que o modelo convergiu corretamente e não sofreu de overfitting significativo.
+- A extrema proximidade entre a Acurácia de Treino (99.28%) e a Acurácia de Validação (99.05%) é a prova empírica de que a rede aprendeu os padrões reais das imagens, em vez de apenas memorizar o conjunto de treinamento. A função de perda permaneceu em um nível mínimo (0.0319).
+
+- As métricas de Precisão, Recall e F1-score (todas na casa dos 99%) demonstram que o modelo é perfeitamente balanceado. Ele não possui viés para identificar apenas os dígitos mais "fáceis" (como o número 1), garantindo um índice baixíssimo de falsos positivos e falsos negativos para todas as 10 classes.
 
 - O pipeline gerou com sucesso os dois artefatos: o modelo base robusto (model.h5) e o modelo final comprimido (model.tflite).
 
