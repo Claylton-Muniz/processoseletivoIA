@@ -300,64 +300,67 @@ Copie o link do seu repositório e envie conforme orientações do processo sele
 
 ## 📝 Relatório do Candidato
 
-O arquivo (`README.md`) deve ser utilizado como **relatório final do desafio**.
+### 👤 Identificação do Candidato
 
-Preencha todas as seções de forma clara e objetiva.
-
-> 💡 Dica: não é necessário um relatório extenso.  
-> O mais importante é demonstrar **clareza nas decisões técnicas**.
-
-
-
-**Exemplo:**
-
-👤 Identificação: **Nome Completo:**
+- **Nome completo:** Claylton Demésio Muniz Silva
+- **GitHub:** [@Claylton-Muniz](https://github.com/Claylton-Muniz/)
 
 
 ### 1️⃣ Resumo da Arquitetura do Modelo
 
-Descreva, em palavras, a arquitetura da **CNN** implementada no arquivo
-`train_model.py`.
+A arquitetura implementada no *train_model.py* consiste em uma Rede Neural Convolucional (CNN) sequencial e compacta, projetada especificamente para extrair padrões espaciais de imagens (28x28 pixels em escala de cinza) mantendo um baixo custo computacional. O fluxo de dados ocorre da seguinte forma:
 
+1. **Camadas de Extração de Características:**
+    
+    - **Conv2D**: Atua como a primeira "lente", varrendo a imagem para identificar padrões básicos.
 
+    - **MaxPooling2D**: Reduz a dimensionalidade da matriz pela metade, destacando as características mais fortes e diminuindo o peso computacional.
+
+    - **Conv2D**: Uma segunda varredura mais profunda, capaz de juntar as linhas da camada anterior para identificar formas complexas.
+
+    - **MaxPooling2D**: Novaredução de resolução.
+
+2. **Camadas de Classificação:**
+    - **Flatten**: Achata o mapa de características bidimensional em um vetor unidimensional.
+
+    - **Dense**: Camada oculta de processamento. Uma decisão que também foi tomada aqui foi número de neurônios limitado a 64, pois isso mantem o modelo eficiente e leve para Edge AI.
+
+    - **Dense**: A camada de saída que gera um vetor de probabilidades predizendo a qual dígito (de 0 a 9) a imagem pertence
 
 ### 2️⃣ Bibliotecas Utilizadas
 
-Liste as principais bibliotecas utilizadas no projeto, preferencialmente
-com suas versões.
+O ecossistema do projeto foi construído sobre as bibliotecas padrão da indústria para Deep Learning:
 
-
+  - **TensorFlow**: O motor principal do projeto. Forneceu a base matemática, o Keras para a construção declarativa da rede neural e a suíte de ferramentas do conversor Lite.
+  
+  - **Keras**: Utilizada como API de alto nível para instanciar as camadas da rede (Sequential, Conv2D, Dense, etc.) e carregar o dataset embutido MNIST.
+  
+  - **NumPy**: Utilizada fundamentalmente no arquivo de otimização (optimize_model.py) para manipulação de matrizes e conversão de tipos de dados (float32) durante a geração do dataset representativo.
 
 ### 3️⃣ Técnica de Otimização do Modelo
 
-Explique qual técnica foi utilizada para otimizar o modelo no arquivo
-`optimize_model.py`.
+No arquivo optimize_model.py, a estratégia aplicada foi além da quantização padrão. O modelo passou pelo processo de Full Integer Quantization (Quantização Inteira Completa).
 
+Para dispositivos na "borda" (como microcontroladores que muitas vezes não possuem unidades de ponto flutuante - FPU), processar números decimais gigantes (float32) é custoso e lento. A técnica implementada resolveu isso em três passos:
 
+1. **Conversão de Pesos**: Transforma os pesos matemáticos da rede de 32 bits para inteiros de 8 bits (INT8), reduzindo o tamanho do arquivo em quase 4 vezes.
+
+2. **Dataset Representativo**: Foi injetada uma amostra de 100 imagens de calibração no conversor. Isso permitiu que o TensorFlow medisse o alcance dinâmico das ativações durante a inferência e ajustasse a escala da conversão de forma inteligente.
+
+3. **Restrição de Operações**: Garantiu que todas as operações matemáticas internas do modelo fossem forçadas para aritmética de inteiros.
 
 ### 4️⃣ Resultados Obtidos
 
-Informe o principal resultado obtido após o treinamento do modelo.
+O treinamento provou a viabilidade de usar arquiteturas compactas para resolver problemas de visão computacional. Mesmo com um tempo de treinamento extremamente reduzido (apenas 5 épocas) e processado apenas na CPU:
 
+- O modelo ultrapassou a meta de 98% de acurácia no conjunto de testes (test_acc), demonstrando alta capacidade de generalização e baixo índice de falsos positivos/negativos.
 
+- A função de perda (loss) permaneceu em níveis mínimos, indicando que o modelo convergiu corretamente e não sofreu de overfitting significativo.
 
-### 5️⃣ Comentários Adicionais (Opcional)
+- O pipeline gerou com sucesso os dois artefatos: o modelo base robusto (model.h5) e o modelo final comprimido (model.tflite).
 
-Utilize este espaço para comentar:
-- Dificuldades encontradas  
-- Decisões técnicas importantes  
-- Limitações do modelo  
-- Aprendizados durante o desafio
+### 5️⃣ Comentários Adicionais
 
+Dificuldades Encontradas e Resoluções:
 
-## 🆘 Suporte
-
-Em caso de dúvidas:
-
-- Consulte o material dos cursos EAD
-- Leia atentamente este README
-- Analise os logs das GitHub Actions
-- Utilize os canais oficiais para contato com os instrutores
-
-Boa sorte no processo seletivo.
-****
+- A maior dificuldade técnica ocorreu durante a implementação da Full Integer Quantization no *optimize_model.py*. O conversor do TensorFlow Lite exige um *representative_dataset* no formato exato da entrada do modelo. O dataset MNIST bruto não possui o canal de cor explícito, gerando erros de dimensão. A solução foi reescrever a função geradora utilizando *numpy.expand_dims()* para forçar o shape *(1, 28, 28, 1)*, garantindo que o calibrador injetasse os dados corretamente no conversor.
